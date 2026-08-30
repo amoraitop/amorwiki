@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: amorwiki
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python amorwiki_server.py
+    envVars:
+      - key: AMORWIKI_PASSWORD
+        sync: false
