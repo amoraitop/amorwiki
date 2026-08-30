@@ -1,0 +1,7 @@
+# Κανόνες αλλαγών γραμμής — τα βιβλία κρατάνε CRLF, ο κώδικας LF
+* text=auto
+*.md text eol=crlf
+*.py text eol=lf
+*.txt text eol=lf
+Procfile text eol=lf
+requirements.txt text eol=lf
