@@ -21,7 +21,6 @@ import sys
 import json
 import time
 import socket
-import base64
 import shutil
 import hashlib
 import urllib.parse
@@ -991,46 +990,13 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         self.send_header("Location", location)
         self.end_headers()
 
-    def _check_cloud_auth(self):
-        """Cloud mode: require HTTP Basic Auth for every page (except ping)."""
-        if not (_IS_CLOUD and EDIT_PASSWORD):
-            return True
-        auth = self.headers.get("Authorization", "")
-        if auth.startswith("Basic "):
-            try:
-                token = base64.b64decode(auth[6:]).decode("utf-8", errors="replace")
-                _, _, pw = token.partition(":")
-                if pw == EDIT_PASSWORD:
-                    return True
-            except Exception:
-                pass
-        # Accept the cookie from the edit-password login form as well.
-        cookies = self.headers.get("Cookie", "")
-        for c in cookies.split(";"):
-            c = c.strip()
-            if c.startswith("amorwiki_auth=") and auth_cookie_ok(c[len("amorwiki_auth="):]):
-                return True
-        return False
-
-    def _send_401(self):
-        self.send_response(401)
-        self.send_header("WWW-Authenticate", 'Basic realm="AmorWiki"')
-        self.send_header("Content-Type", "text/plain; charset=utf-8")
-        body = "Authentication required".encode("utf-8")
-        self.send_header("Content-Length", str(len(body)))
-        self.end_headers()
-        self.wfile.write(body)
-
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
         raw = urllib.parse.unquote(parsed.path)
         q = urllib.parse.parse_qs(parsed.query)
-        # Public health endpoint for the uptime monitor (no auth needed).
+        # Public health endpoint for the uptime monitor.
         if raw in ("/amorwiki/ping", "/ping"):
             self._send(200, b"pong", "text/plain; charset=utf-8")
-            return
-        if not self._check_cloud_auth():
-            self._send_401()
             return
         if raw in ("/", "/amorwiki", "/amorwiki/"):
             self._redirect("/amorwiki/home")
@@ -1111,11 +1077,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             return
         action = route[len("/amorwiki/"):].split("/")[0]
         data = read_post(self)
-
-        # Cloud mode: the whole site is behind Basic Auth, so writes are too.
-        if action != "login" and not self._check_cloud_auth():
-            self._send_401()
-            return
 
         # Login
         if action == "login":
