@@ -343,17 +343,19 @@ def shell(title, content, active=""):
         cls = ' class="on"' if active == label else ""
         return '<li%s><a href="%s">%s</a></li>' % (cls, path, label)
 
+    ver = load_version()
+    ver_html = f'<div style="margin-top:1.5rem;font-size:11px;color:var(--muted);border-top:1px solid var(--line);padding-top:.5rem">V{ver["version"]} | {ver["date"]}</div>'
     sidebar = (
-        "<aside><h4>Πλοήγηση</h4><ul>"
-        + li("/amorwiki/home", "Κεντρική")
-        + li("/amorwiki/books", "Βιβλία")
-        + li("/amorwiki/authors", "Συγγραφείς")
-        + li("/amorwiki/tags", "Ετικέτες")
-        + li("/amorwiki/recent", "Πρόσφατες αλλαγές")
-        + li("/amorwiki/help", "Βοήθεια")
-        + "</ul><h4>Εργαλεία</h4><ul>"
-        + li("/amorwiki/new", "Προσθήκη βιβλίου")
-        + "</ul></aside>"
+            "<aside><h4>Πλοήγηση</h4><ul>"
+            + li("/amorwiki/home", "Κεντρική")
+            + li("/amorwiki/books", "Βιβλία")
+            + li("/amorwiki/authors", "Συγγραφείς")
+            + li("/amorwiki/tags", "Ετικέτες")
+            + li("/amorwiki/recent", "Πρόσφατες αλλαγές")
+            + li("/amorwiki/help", "Βοήθεια")
+            + "</ul><h4>Εργαλεία</h4><ul>"
+            + li("/amorwiki/new", "Προσθήκη βιβλίου")
+            + "</ul>" + ver_html + "</aside>"
     )
 
     hdr = (
@@ -833,12 +835,38 @@ def journal_add(action, title, slug):
             json.dump(entries, f, ensure_ascii=False)
     except Exception:
         pass
+    bump_version()
 
 # ---------------------------------------------------------------------------
 # Write helpers (build .md files)
 # ---------------------------------------------------------------------------
 def today():
     return time.strftime("%Y-%m-%d")
+
+VERSION_FILE = APP_DIR / "version.json"
+
+def load_version():
+    try:
+        if VERSION_FILE.exists():
+            with open(VERSION_FILE, encoding="utf-8") as f:
+                return json.load(f)
+    except Exception:
+        pass
+    return {"version": 1, "date": today()}
+
+def save_version(v):
+    try:
+        with open(VERSION_FILE, "w", encoding="utf-8") as f:
+            json.dump(v, f, ensure_ascii=False)
+    except Exception:
+        pass
+
+def bump_version():
+    v = load_version()
+    v["version"] = v.get("version", 0) + 1
+    v["date"] = today()
+    save_version(v)
+    return v
 
 def build_md(fields, body, existing=None):
     """Rebuild the markdown file preserving a sensible frontmatter order."""
