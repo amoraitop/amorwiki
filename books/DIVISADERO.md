@@ -2,11 +2,12 @@
 title: DIVISADERO
 author: [[Μάικλ-Οντάατζε]]
 created: 2026-08-22
-updated: 2026-08-22
+read_year: 2010
+updated: 2026-09-13
 type: entity
 subtype: book
 tags: [λογοτεχνία, μεταφρασμένα, μυθιστόρημα, πριν-2016]
-read_year: 2010
+meeting_date: 2010-07-12
 rating: —
 status: διαβασμένο
 sources: [sources/feed1.atom]
